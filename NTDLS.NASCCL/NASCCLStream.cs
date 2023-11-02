@@ -85,7 +85,17 @@ namespace NTDLS.NASCCL
         public byte[] Cipher(byte[] source)
         {
             byte[] target = new byte[source.Length];
+            Cipher(source, ref target);
+            return target;
+        }
 
+        public void Cipher(ref byte[] sourceAndTarget)
+        {
+            Cipher(sourceAndTarget, ref sourceAndTarget);
+        }
+
+        public void Cipher(byte[] source, ref byte[] target)
+        {
             if (_autoReset)
             {
                 ResetStream();
@@ -112,8 +122,6 @@ namespace NTDLS.NASCCL
                 _suppliedKeyIndex--;
                 _saltBoxIndex++;
             }
-
-            return target;
         }
     }
 }
