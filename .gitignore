@@ -1,0 +1,10 @@
+
+NTDLS.NASCCL/bin/
+
+NTDLS.NASCCL/obj/
+
+.vs/
+
+TestHarness/bin/
+
+TestHarness/obj/
