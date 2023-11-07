@@ -1,5 +1,7 @@
 # NTDLS.NASCCL
 
+📦 Be sure to check out the NuGet pacakge: https://www.nuget.org/packages/NTDLS.NASCCL
+
 NetowkrDLS Algorithmic Symmetric Cipher Cryptography Library. Original C++ library ported to C#
 
 *Simple string encryption example:*
