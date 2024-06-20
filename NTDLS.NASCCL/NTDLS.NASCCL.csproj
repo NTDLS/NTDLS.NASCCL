@@ -6,17 +6,15 @@
     <Authors>NetworkDLS</Authors>
     <Company>NetworkDLS</Company>
     <Description>NetowkrDLS Algorithmic Symmetric Cipher Cryptography Library. Original C++ library ported to C#</Description>
-    <Copyright>Copyright © 2023 NetworkDLS</Copyright>
+    <Copyright>Copyright © 2024 NetworkDLS</Copyright>
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.NASCCL</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.NASCCL</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
       net8
     </PackageReleaseNotes>
-    <AssemblyVersion>1.1.1</AssemblyVersion>
-    <FileVersion>1.1.1</FileVersion>
-    <VersionPrefix>1.1.1</VersionPrefix>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Version>1.1.2</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>False</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
