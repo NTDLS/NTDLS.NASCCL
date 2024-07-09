@@ -11,9 +11,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.NASCCL</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      net8
+      Minor optimizations.
     </PackageReleaseNotes>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>

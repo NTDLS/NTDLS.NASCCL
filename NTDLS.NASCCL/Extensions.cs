@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace NTDLS.NASCCL
 {
     internal static class Extensions
     {
-        public static void Sanitize(this ushort[,] array)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Sanitize(this byte[,] array)
         {
             for (int box = 0; box < KeyExpansion.BoxCount; box++)
             {
@@ -15,6 +17,7 @@ namespace NTDLS.NASCCL
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Sanitize(this byte[] array)
         {
             for (int index = 0; index < array.Length; index++)
@@ -23,45 +26,18 @@ namespace NTDLS.NASCCL
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] Copy(this byte[] array)
-        {
-            var clone = new byte[array.Length];
-            Array.Copy(array, clone, array.Length);
-            return clone;
-        }
+            => (byte[])array.Clone();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[,] Copy(this byte[,] array)
         {
             int rows = array.GetLength(0);
             int columns = array.GetLength(1);
 
             var clone = new byte[rows, columns];
-
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < columns; j++)
-                {
-                    clone[i, j] = array[i, j];
-                }
-            }
-
-            return clone;
-        }
-
-        public static ushort[,] Copy(this ushort[,] array)
-        {
-            int rows = array.GetLength(0);
-            int columns = array.GetLength(1);
-
-            var clone = new ushort[rows, columns];
-
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < columns; j++)
-                {
-                    clone[i, j] = array[i, j];
-                }
-            }
+            Buffer.BlockCopy(array, 0, clone, 0, array.Length * sizeof(byte));
 
             return clone;
         }

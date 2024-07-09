@@ -26,8 +26,22 @@ namespace NTDLS.NASCCL
         private int _suppliedKeyIndex;
         private int _saltBoxIndex;
 
-        private ushort[,] _keySalt;
-        private ushort[,] _OriginalKeySalt;
+        private byte[,] _keySalt;
+        private byte[,] _OriginalKeySalt;
+
+        /// <summary>
+        /// Generates key salt values from a UTF8 string.
+        /// </summary>
+        /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
+        public static byte[,] GenerateKeySalt(string key)
+            => KeyExpansion.GenerateKeySalt(Encoding.UTF8.GetBytes(key));
+
+        /// <summary>
+        /// Generates key salt values from a byte array.
+        /// </summary>
+        /// <param name="keyBuffer">The bytes to use as the encryption/decryption key.</param>
+        public static byte[,] GenerateKeySalt(byte[] keyBuffer)
+            => KeyExpansion.GenerateKeySalt(keyBuffer);
 
         /// <summary>
         /// Initializes a new instance of the NASCCL stream without a key. Initialize() must be called before using.
@@ -37,7 +51,7 @@ namespace NTDLS.NASCCL
         /// <summary>
         /// Initializes a new instance of the NASCCL stream using a key in auto-reset mode.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
         public CryptoStream(byte[] key)
             => Initialize(key, true);
 
@@ -52,7 +66,7 @@ namespace NTDLS.NASCCL
         /// <summary>
         /// Initializes a new instance of the NASCCL stream using a key in block mode.
         /// </summary>
-        /// <param name="key">The bytes to use as the encryption/decryption key.</param>
+        /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
         public CryptoStream(string key)
             => Initialize(Encoding.UTF8.GetBytes(key), true);
 

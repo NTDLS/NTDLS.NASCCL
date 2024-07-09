@@ -6,18 +6,18 @@ namespace TestHarness
 {
     internal class Program
     {
-        static void TimeUnitNegotiator()
+        static void TimedTest(int iterations)
         {
-            var nasccl = new CryptoStream("This is my somewhat Long Pa$$word! OK!?");
+            var cryptoStream = new CryptoStream("This is my somewhat Long Pa$$word! OK!?");
 
-            DateTime startTime = DateTime.Now;
+            var startTime = DateTime.UtcNow;
 
             string originalText = "This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!";
 
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < iterations; i++)
             {
-                var cipherBytes = nasccl.Cipher(originalText);
-                var decipherBytes = nasccl.Cipher(cipherBytes);
+                var cipherBytes = cryptoStream.Cipher(originalText);
+                var decipherBytes = cryptoStream.Cipher(cipherBytes);
                 string decipheredText = Encoding.UTF8.GetString(decipherBytes);
 
                 if (decipheredText != originalText)
@@ -26,20 +26,19 @@ namespace TestHarness
                 }
             }
 
-            Console.WriteLine($"Elapsed time: {(DateTime.Now - startTime).TotalMilliseconds:n0}");
+            Console.WriteLine($"Elapsed time: {(DateTime.UtcNow - startTime).TotalMilliseconds:n0}");
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
-            TimeUnitNegotiator();
+            TimedTest(10000);
 
-
-            var nasccl = new CryptoStream("ThisIsTheP@$$w0Rd!");
-            var cipherBytes = nasccl.Cipher("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
-            var decipherBytes = nasccl.Cipher(cipherBytes);
+            var cryptoStream = new CryptoStream("ThisIsTheP@$$w0Rd!");
+            var cipherBytes = cryptoStream.Cipher("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
+            var decipherBytes = cryptoStream.Cipher(cipherBytes);
             string decipheredText = Encoding.UTF8.GetString(decipherBytes);
 
-
+            Console.WriteLine("Press [enter] to exit.");
             Console.ReadLine();
         }
     }

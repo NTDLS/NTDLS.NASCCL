@@ -14,12 +14,12 @@ namespace NTDLS.NASCCL
         public const int BoxCount = 64;
         public const int ValueCount = 256;
 
-        public static ushort[,] GenerateKeySalt(byte[] keyBuffer)
+        public static byte[,] GenerateKeySalt(byte[] keyBuffer)
         {
             byte saltValue = 0;
             int suppliedKeyIndex = 0;
 
-            var keySalt = new ushort[BoxCount, ValueCount];
+            var keySalt = new byte[BoxCount, ValueCount];
 
             for (int box = 0; box < BoxCount; box++)
             {
@@ -42,7 +42,7 @@ namespace NTDLS.NASCCL
             return keySalt;
         }
 
-        private static readonly ushort[,] Boxes = new ushort[BoxCount, ValueCount]
+        private static readonly byte[,] Boxes = new byte[BoxCount, ValueCount]
         {
             {
                 0xbc, 0x16, 0xf,  0x7c, 0xc5, 0xd5, 0x8f, 0xfc,
