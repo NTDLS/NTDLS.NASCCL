@@ -5,7 +5,7 @@
     <Title>NTDLS.NASCCL</Title>
     <Authors>NetworkDLS</Authors>
     <Company>NetworkDLS</Company>
-    <Description>NetowkrDLS Algorithmic Symmetric Cipher Cryptography Library. Original C++ library ported to C#</Description>
+    <Description>NetworkDLS Algorithmic Symmetric Cipher Cryptography Library. Original C++ library ported to C#</Description>
     <Copyright>Copyright © 2024 NetworkDLS</Copyright>
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.NASCCL</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.NASCCL</RepositoryUrl>

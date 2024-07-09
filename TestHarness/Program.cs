@@ -8,7 +8,7 @@ namespace TestHarness
     {
         static void TimeUnitNegotiator()
         {
-            var nasccl = new NASCCLStream("This is my somewhat Long Pa$$word! OK!?");
+            var nasccl = new CryptoStream("This is my somewhat Long Pa$$word! OK!?");
 
             DateTime startTime = DateTime.Now;
 
@@ -34,7 +34,7 @@ namespace TestHarness
             TimeUnitNegotiator();
 
 
-            var nasccl = new NASCCLStream("ThisIsTheP@$$w0Rd!");
+            var nasccl = new CryptoStream("ThisIsTheP@$$w0Rd!");
             var cipherBytes = nasccl.Cipher("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
             var decipherBytes = nasccl.Cipher(cipherBytes);
             string decipheredText = Encoding.UTF8.GetString(decipherBytes);
