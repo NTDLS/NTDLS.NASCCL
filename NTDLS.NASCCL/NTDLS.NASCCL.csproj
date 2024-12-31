@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <Title>NTDLS.NASCCL</Title>
     <Authors>NetworkDLS</Authors>
     <Company>NetworkDLS</Company>
     <Description>NetworkDLS Algorithmic Symmetric Cipher Cryptography Library. Original C++ library ported to C#</Description>
-    <Copyright>Copyright © 2024 NetworkDLS</Copyright>
+    <Copyright>Copyright © 2025 NetworkDLS</Copyright>
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.NASCCL</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.NASCCL</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
       Minor optimizations.
     </PackageReleaseNotes>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
