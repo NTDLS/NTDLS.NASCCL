@@ -11,9 +11,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.NASCCL</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Minor optimizations.
+      Removed logo from package.
     </PackageReleaseNotes>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
@@ -24,10 +24,6 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="Icon.ico" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\Images\Logo.png">
