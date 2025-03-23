@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -17,18 +19,43 @@ namespace TestHarness
 
         static void Main()
         {
-            TimedAutoResetMode(10000);
-            TimedStreamContinuousMode(10000);
+            TimedAutoResetMode(100);
+            TimedStreamContinuousMode(100);
 
             using var permafrost = new PermafrostCipher("ThisIsTheP@$$w0Rd!", PermafrostMode.AutoReset);
             var cipherBytes = permafrost.EncryptString("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
             var decipheredText = permafrost.DecryptString(cipherBytes);
 
-            EncryptAndCompressFile("C:\\Users\\ntdls\\Desktop\\TestInput.txt", "C:\\Users\\ntdls\\Desktop\\TestOutput.txt");
-            DecryptAndDecompressFile("C:\\Users\\ntdls\\Desktop\\TestOutput.txt", "C:\\Users\\ntdls\\Desktop\\TestDecryptesOutput.txt");
+            EncryptFile("C:\\Users\\ntdls\\Desktop\\TestInput.txt", "C:\\Users\\ntdls\\Desktop\\TestOutput.txt");
+            DecryptFile("C:\\Users\\ntdls\\Desktop\\TestOutput.txt", "C:\\Users\\ntdls\\Desktop\\TestDecryptesOutput.txt");
+
+            //EncryptAndCompressFile("C:\\Users\\ntdls\\Desktop\\TestInput.txt", "C:\\Users\\ntdls\\Desktop\\TestOutput.txt");
+            //DecryptAndDecompressFile("C:\\Users\\ntdls\\Desktop\\TestOutput.txt", "C:\\Users\\ntdls\\Desktop\\TestDecryptesOutput.txt");
 
             Console.WriteLine("Press [enter] to exit.");
             Console.ReadLine();
+        }
+
+        public static void SaveEncryptedBytesAsBitmap(byte[] data, string outputPath)
+        {
+            // Make the image as square as possible.
+            int width = (int)Math.Ceiling(Math.Sqrt(data.Length));
+            int height = (int)Math.Ceiling(data.Length / (double)width);
+
+            using var bmp = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+
+            int dataIndex = 0;
+            for (int y = 0; y < height && dataIndex < data.Length; y++)
+            {
+                for (int x = 0; x < width && dataIndex < data.Length; x++)
+                {
+                    byte value = data[dataIndex++];
+                    var color = Color.FromArgb(value, value, value); // grayscale
+                    bmp.SetPixel(x, y, color);
+                }
+            }
+
+            bmp.Save(outputPath, ImageFormat.Png);
         }
 
         static byte[] TimeInTicks(ByteAction method, out double elapsedTicks)
@@ -165,6 +192,42 @@ namespace TestHarness
 
             int bytesRead;
             while ((bytesRead = gzip.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, bytesRead);
+            }
+        }
+
+        public static void EncryptFile(string inputPath, string outputPath)
+        {
+            byte[] buffer = new byte[8192];
+
+            using var input = File.OpenRead(inputPath);
+            using var output = File.Create(outputPath);
+            using var permafrost = new PermafrostStream(output, "ThisIsTheP@$$w0Rd!");
+
+            int bytesRead;
+            while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                permafrost.Write(buffer, 0, bytesRead);
+            }
+
+            //input.Close();
+            //output.Close();
+
+            //var bytes = File.ReadAllBytes(inputPath);
+            //SaveEncryptedBytesAsBitmap(bytes, outputPath + ".png");
+        }
+
+        public static void DecryptFile(string inputPath, string outputPath)
+        {
+            byte[] buffer = new byte[8192];
+
+            using var input = File.OpenRead(inputPath);
+            using var permafrost = new PermafrostStream(input, "ThisIsTheP@$$w0Rd!");
+            using var output = File.Create(outputPath);
+
+            int bytesRead;
+            while ((bytesRead = permafrost.Read(buffer, 0, buffer.Length)) > 0)
             {
                 output.Write(buffer, 0, bytesRead);
             }

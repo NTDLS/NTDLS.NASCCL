@@ -35,8 +35,11 @@ namespace NTDLS.Permafrost
         private int _suppliedKeySize;
         private int _suppliedKeyIndex;
         private int _keyScheduleIndex;
+        private int _rollingMutation = 0xA5; // non-zero seed
+        private int _mutationFeedback = 0x5A;
 
         private byte[,]? _keySchedule = null;
+        private byte[,]? _originalKeySchedule = null;
 
         /// <summary>
         /// The default number of key schedules to generate.
@@ -285,6 +288,8 @@ namespace NTDLS.Permafrost
                     _keySchedule[schedule, valueIndex] = keySchedule[valueIndex];
                 }
             }
+
+            _originalKeySchedule = _keySchedule.Copy();
         }
 
         /// <summary>
@@ -328,12 +333,16 @@ namespace NTDLS.Permafrost
             _suppliedKeyIndex = (_suppliedKeySize - 1);
             _keyScheduleIndex = 0;
 
-            if (_keyBuffer == null || _originalKeyBuffer == null || _keySchedule == null)
+            if (_keyBuffer == null || _originalKeyBuffer == null || _keySchedule == null || _originalKeySchedule == null)
             {
                 throw new InvalidOperationException("Permafrost has not been initialized.");
             }
 
+            _rollingMutation = 0xA5;
+            _mutationFeedback = 0x5A;
+
             Array.Copy(_originalKeyBuffer, _keyBuffer, _originalKeyBuffer.Length);
+            Array.Copy(_originalKeySchedule, _keySchedule, _originalKeySchedule.Length);
         }
 
         /// <summary>
@@ -440,23 +449,77 @@ namespace NTDLS.Permafrost
 
             for (uint index = (uint)startIndex; index < sourceLength; index++)
             {
-                if (_suppliedKeyIndex == -1)
+                target[index] = (byte)(source[index] ^ GetNextKeyByte());
+            }
+        }
+
+        private byte GetNextKeyByte()
+        {
+            if (_keyBuffer == null || _keySchedule == null)
+            {
+                throw new InvalidOperationException("Permafrost has not been initialized.");
+            }
+            if (_keyScheduleIndex == KeyScheduleCount)
+            {
+                _keyScheduleIndex = 0;
+                MutateKeySchedule();
+            }
+            if (_suppliedKeyIndex == -1)
+            {
+                _suppliedKeyIndex = (_suppliedKeySize - 1);
+                MutateKeySchedule();
+            }
+
+            var keyByte = _keyBuffer[_suppliedKeyIndex];
+
+            var k4 = _keySchedule[(keyByte + 4) % KeyScheduleCount, keyByte];
+            var k6 = _keySchedule[(keyByte + 6) % KeyScheduleCount, keyByte];
+            var k8 = _keySchedule[(keyByte + 8) % KeyScheduleCount, keyByte];
+            var k10 = _keySchedule[(keyByte + 10) % KeyScheduleCount, keyByte];
+            var k12 = _keySchedule[(keyByte + 12) % KeyScheduleCount, keyByte];
+            var k14 = _keySchedule[(keyByte + 14) % KeyScheduleCount, keyByte];
+            var k16 = _keySchedule[(keyByte + 16) % KeyScheduleCount, keyByte];
+
+            //Mutate the key buffer.
+            _keyBuffer[_suppliedKeyIndex] ^= (byte)((_suppliedKeyIndex + _keyScheduleIndex + k6 + k10 + k14) % 256);
+
+            _suppliedKeyIndex--;
+            _keyScheduleIndex++;
+
+            return (byte)(((keyByte ^ k4 ^ k6 ^ k8 ^ k10 ^ k12 ^ k14 ^ k16) + _keyScheduleIndex) & 0xFF);
+        }
+
+        private void MutateKeySchedule()
+        {
+            if (_keyBuffer == null || _keySchedule == null)
+            {
+                throw new InvalidOperationException("Permafrost has not been initialized.");
+            }
+
+            for (int schedule = 0; schedule < KeyScheduleCount; schedule++)
+            {
+                for (int scheduleValue = 0; scheduleValue < keyScheduleValueCount; scheduleValue++)
                 {
-                    _suppliedKeyIndex = (_suppliedKeySize - 1);
+                    int index = (schedule * keyScheduleValueCount + scheduleValue) % _suppliedKeySize;
+                    byte passByte = _keyBuffer[index];
+                    byte current = _keySchedule[schedule, scheduleValue];
+
+                    //Combine various sources of entropy.
+                    int mixed = current
+                                ^ passByte
+                                ^ (_rollingMutation >> 1)
+                                ^ (_mutationFeedback << 1)
+                                ^ ((schedule * 31 + scheduleValue * 17) & 0xFF);
+
+                    //Add some bit-level diffusion.
+                    mixed = ((mixed << 3) | (mixed >> 5)) & 0xFF;
+
+                    //Update feedback for next round (carry over influence).
+                    _mutationFeedback = (_mutationFeedback + mixed + current + index) & 0xFF;
+                    _rollingMutation ^= (mixed + passByte + schedule + scheduleValue) & 0xFF;
+
+                    _keySchedule[schedule, scheduleValue] ^= (byte)mixed;
                 }
-
-                if (_keyScheduleIndex == KeyScheduleCount)
-                {
-                    _keyScheduleIndex = 0;
-                }
-
-                target[index] = (byte)(source[index] ^ _keySchedule[_keyScheduleIndex, _keyBuffer[_suppliedKeyIndex]]);
-
-                //Mutate the key buffer.
-                _keyBuffer[_suppliedKeyIndex] ^= (byte)((_suppliedKeyIndex + 11 + _keyScheduleIndex) % 256);
-
-                _suppliedKeyIndex--;
-                _keyScheduleIndex++;
             }
         }
     }
