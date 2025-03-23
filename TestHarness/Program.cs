@@ -19,12 +19,12 @@ namespace TestHarness
 
         static void Main()
         {
-            TimedAutoResetMode(100);
-            TimedStreamContinuousMode(100);
+            //TimedAutoResetMode(100);
+            //TimedStreamContinuousMode(100);
 
-            using var permafrost = new PermafrostCipher("ThisIsTheP@$$w0Rd!", PermafrostMode.AutoReset);
-            var cipherBytes = permafrost.EncryptString("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
-            var decipheredText = permafrost.DecryptString(cipherBytes);
+            //using var permafrost = new PermafrostCipher("ThisIsTheP@$$w0Rd!", PermafrostMode.AutoReset);
+            //var cipherBytes = permafrost.EncryptString("This is some text that I would like to keep safe if that is ok with you? Oh, it is? Good!");
+            //var decipheredText = permafrost.DecryptString(cipherBytes);
 
             EncryptFile("C:\\Users\\ntdls\\Desktop\\TestInput.txt", "C:\\Users\\ntdls\\Desktop\\TestOutput.txt");
             DecryptFile("C:\\Users\\ntdls\\Desktop\\TestOutput.txt", "C:\\Users\\ntdls\\Desktop\\TestDecryptesOutput.txt");
@@ -211,11 +211,11 @@ namespace TestHarness
                 permafrost.Write(buffer, 0, bytesRead);
             }
 
-            //input.Close();
-            //output.Close();
+            input.Close();
+            output.Close();
 
-            //var bytes = File.ReadAllBytes(inputPath);
-            //SaveEncryptedBytesAsBitmap(bytes, outputPath + ".png");
+            var bytes = File.ReadAllBytes(outputPath);
+            SaveEncryptedBytesAsBitmap(bytes, outputPath + ".png");
         }
 
         public static void DecryptFile(string inputPath, string outputPath)

@@ -8,7 +8,6 @@ namespace NTDLS.Permafrost
     /// </summary>
     public class PermafrostStream : Stream, IDisposable
     {
-
         private readonly PermafrostCipher _permafrost;
 
         private readonly Stream? _innerStream = null;
