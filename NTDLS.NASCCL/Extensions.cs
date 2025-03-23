@@ -1,26 +1,29 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace NTDLS.NASCCL
+namespace NTDLS.Permafrost
 {
     internal static class Extensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void Sanitize(this byte[,] array)
         {
-            for (int box = 0; box < KeyExpansion.BoxCount; box++)
+            int rows = array.GetLength(0);
+            int columns = array.GetLength(1);
+
+            for (int row = 0; row < rows; row++)
             {
-                for (int val = 0; val < KeyExpansion.ValueCount; val++)
+                for (int col = 0; col < columns; col++)
                 {
-                    array[box, val] = 0;
+                    array[row, col] = 0;
                 }
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void Sanitize(this byte[] array)
         {
-            for (int index = 0; index < array.Length; index++)
+            for (var index = 0; index < array.Length; index++)
             {
                 array[index] = 0;
             }
@@ -28,7 +31,11 @@ namespace NTDLS.NASCCL
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] Copy(this byte[] array)
-            => (byte[])array.Clone();
+        {
+            var clone = new byte[array.Length];
+            Buffer.BlockCopy(array, 0, clone, 0, array.Length);
+            return clone;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[,] Copy(this byte[,] array)

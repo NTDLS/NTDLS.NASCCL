@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NTDLS.NASCCL\NTDLS.NASCCL.csproj" />
+    <ProjectReference Include="..\NTDLS.NASCCL\NTDLS.Permafrost.csproj" />
   </ItemGroup>
 
 </Project>
