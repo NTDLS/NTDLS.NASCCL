@@ -472,13 +472,13 @@ namespace NTDLS.Permafrost
 
             var keyByte = _keyBuffer[_suppliedKeyIndex];
 
-            var k4 = _keySchedule[(keyByte + 4) % KeyScheduleCount, keyByte];
-            var k6 = _keySchedule[(keyByte + 6) % KeyScheduleCount, keyByte];
-            var k8 = _keySchedule[(keyByte + 8) % KeyScheduleCount, keyByte];
-            var k10 = _keySchedule[(keyByte + 10) % KeyScheduleCount, keyByte];
-            var k12 = _keySchedule[(keyByte + 12) % KeyScheduleCount, keyByte];
-            var k14 = _keySchedule[(keyByte + 14) % KeyScheduleCount, keyByte];
-            var k16 = _keySchedule[(keyByte + 16) % KeyScheduleCount, keyByte];
+            var k4 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 4) % KeyScheduleCount, keyByte];
+            var k6 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 6) % KeyScheduleCount, keyByte];
+            var k8 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 8) % KeyScheduleCount, keyByte];
+            var k10 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 10) % KeyScheduleCount, keyByte];
+            var k12 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 12) % KeyScheduleCount, keyByte];
+            var k14 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 14) % KeyScheduleCount, keyByte];
+            var k16 = _keySchedule[(keyByte * (_suppliedKeyIndex + _keyScheduleIndex) * 16) % KeyScheduleCount, keyByte];
 
             //Mutate the key buffer.
             _keyBuffer[_suppliedKeyIndex] ^= (byte)((_suppliedKeyIndex + _keyScheduleIndex + k6 + k10 + k14) % 256);
@@ -501,12 +501,12 @@ namespace NTDLS.Permafrost
                 for (int scheduleValue = 0; scheduleValue < keyScheduleValueCount; scheduleValue++)
                 {
                     int index = (schedule * keyScheduleValueCount + scheduleValue) % _suppliedKeySize;
-                    byte passByte = _keyBuffer[index];
-                    byte current = _keySchedule[schedule, scheduleValue];
+                    byte keyByte = _keyBuffer[index];
+                    byte currentSchedule = _keySchedule[schedule, scheduleValue];
 
                     //Combine various sources of entropy.
-                    int mixed = current
-                                ^ passByte
+                    int mixed = currentSchedule
+                                ^ keyByte
                                 ^ (_rollingMutation >> 1)
                                 ^ (_mutationFeedback << 1)
                                 ^ ((schedule * 31 + scheduleValue * 17) & 0xFF);
@@ -515,8 +515,8 @@ namespace NTDLS.Permafrost
                     mixed = ((mixed << 3) | (mixed >> 5)) & 0xFF;
 
                     //Update feedback for next round (carry over influence).
-                    _mutationFeedback = (_mutationFeedback + mixed + current + index) & 0xFF;
-                    _rollingMutation ^= (mixed + passByte + schedule + scheduleValue) & 0xFF;
+                    _mutationFeedback = (_mutationFeedback + mixed + currentSchedule + index) & 0xFF;
+                    _rollingMutation ^= (mixed + keyByte + schedule + scheduleValue) & 0xFF;
 
                     _keySchedule[schedule, scheduleValue] ^= (byte)mixed;
                 }
