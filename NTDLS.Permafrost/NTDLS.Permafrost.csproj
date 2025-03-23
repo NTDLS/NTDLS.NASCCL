@@ -12,8 +12,9 @@
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
       Vastly improved entropy.
+      Wider key schedule reach.
     </PackageReleaseNotes>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
