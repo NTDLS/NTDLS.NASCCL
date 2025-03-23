@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NTDLS.NASCCL\NTDLS.Permafrost.csproj" />
+    <ProjectReference Include="..\NTDLS.Permafrost\NTDLS.Permafrost.csproj" />
   </ItemGroup>
 
 </Project>
