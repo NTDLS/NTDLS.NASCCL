@@ -25,39 +25,37 @@ namespace NTDLS.Permafrost
         /// </summary>
         public PermafrostMode Mode { get; set; }
 
-        private readonly byte[] _defaultSeed = Encoding.UTF8.GetBytes("BdlgylbjsAs7owqsRdemY8TvHuuWD16D\r\nCGXat20B8IJyD9kQYcY5Fz0Qd3fueSrS\r\nQhakrrL5yTZ7bwvC4qbK3VSpyonZDrQN\r\nlnFpSoBsVpjfVpiARrbPyJGN0OewXtuk\r\n3BZT7wmXBJuCX42vnV99xxD3z37HngRY\r\nAeeoVKst1RqJdCiZ1VKM9Si14OXWFiJv\r\nQiPikSjwJ5UiXElLsYdw2sHZHH9EJNZH\r\nzPelVL3bxcMSCeNyctFzmUkIIiv6eylB\r\nlKgWbXbpLjMYc6UIIbHhP36S4TdTfcXv\r\no0LpxKFoJtUMYWTjyhMI8y5PYXojo2p3");
+        private readonly byte[] _defaultSeed = Encoding.UTF8.GetBytes("BdlgylbjsAs7owqsRdemY8TvHuuWD16DCGXat20B8IJyD9kQYcY5Fz0Qd3fueSrSQhakrrL5yTZ7bwvC4qbK3VSpyonZDrQNlnFpSoBsVpjfVpiARrbPyJGN0OewXtuk");
 
         private bool _disposed;
-        private ulong _saltHashCounter = 0;
+        private ulong _KeyScheduleGenCounter = 0;
         private byte[]? _keyBuffer = null;
         private byte[]? _originalKeyBuffer = null;
 
         private int _suppliedKeySize;
         private int _suppliedKeyIndex;
-        private int _saltBoxIndex;
+        private int _keyScheduleIndex;
 
-        private byte[,]? _boxes = null;
-        private byte[,]? _keySalt = null;
-        private byte[,]? _OriginalKeySalt = null;
+        private byte[,]? _keySchedule = null;
 
         /// <summary>
-        /// The default number of salt boxes to generate.
+        /// The default number of key schedules to generate.
         /// </summary>
-        public readonly int DefaultSaltBoxCount = 64;
+        public readonly int DefaultKeyScheduleCount = 64;
         /// <summary>
-        /// The minimum number of salt boxes to generate.
+        /// The minimum number of key schedules to generate.
         /// </summary>
-        public readonly int MinimumSaltBoxCount = 16;
+        public readonly int MinimumKeyScheduleCount = 1;
         /// <summary>
-        /// The maximum number of salt boxes to generate.
+        /// The maximum number of key schedule to generate.
         /// </summary>
-        public readonly int MaximumSaltBoxCount = 10 * 1024;
+        public readonly int MaximumKeyScheduleCount = 10 * 1024;
 
         /// <summary>
-        /// The number of salt boxes generated.
+        /// The number of key schedules generated.
         /// </summary>
-        public int SaltBoxCount { get; private set; } = 0;
-        private const int SaltBoxValueCount = 256;
+        public int KeyScheduleCount { get; private set; } = 0;
+        private const int keyScheduleValueCount = 256;
 
         /// <summary>
         /// Clears out the variables used for encryption.
@@ -92,7 +90,7 @@ namespace NTDLS.Permafrost
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
         public PermafrostCipher(byte[] key)
-            => Initialize(_defaultSeed, DefaultSaltBoxCount, key, PermafrostMode.Continuous);
+            => Initialize(_defaultSeed, DefaultKeyScheduleCount, key, PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
@@ -100,14 +98,14 @@ namespace NTDLS.Permafrost
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
         public PermafrostCipher(byte[] key, PermafrostMode mode)
-            => Initialize(_defaultSeed, DefaultSaltBoxCount, key, mode);
+            => Initialize(_defaultSeed, DefaultKeyScheduleCount, key, mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
         public PermafrostCipher(string key)
-            => Initialize(_defaultSeed, DefaultSaltBoxCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
+            => Initialize(_defaultSeed, DefaultKeyScheduleCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
@@ -115,128 +113,130 @@ namespace NTDLS.Permafrost
         /// <param name="key">The string to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
         public PermafrostCipher(string key, PermafrostMode mode)
-            => Initialize(_defaultSeed, DefaultSaltBoxCount, Encoding.UTF8.GetBytes(key), mode);
+            => Initialize(_defaultSeed, DefaultKeyScheduleCount, Encoding.UTF8.GetBytes(key), mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
+        /// <param name="seed">Byte array used to generate key schedules.</param>
         public PermafrostCipher(byte[] key, byte[] seed)
-            => Initialize(seed, DefaultSaltBoxCount, key, PermafrostMode.Continuous);
+            => Initialize(seed, DefaultKeyScheduleCount, key, PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
+        /// <param name="seed">Byte array used to generate key schedules.</param>
         public PermafrostCipher(byte[] key, PermafrostMode mode, byte[] seed)
-            => Initialize(seed, DefaultSaltBoxCount, key, mode);
+            => Initialize(seed, DefaultKeyScheduleCount, key, mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
+        /// <param name="seed">Byte array used to generate key schedules.</param>
         public PermafrostCipher(string key, byte[] seed)
-            => Initialize(seed, DefaultSaltBoxCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
+            => Initialize(seed, DefaultKeyScheduleCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The string to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
+        /// <param name="seed">Byte array used to generate key schedules.</param>
         public PermafrostCipher(string key, PermafrostMode mode, byte[] seed)
-            => Initialize(seed, DefaultSaltBoxCount, Encoding.UTF8.GetBytes(key), mode);
+            => Initialize(seed, DefaultKeyScheduleCount, Encoding.UTF8.GetBytes(key), mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(byte[] key, int saltBoxCount)
-            => Initialize(_defaultSeed, saltBoxCount, key, PermafrostMode.Continuous);
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(byte[] key, int keyScheduleCount)
+            => Initialize(_defaultSeed, keyScheduleCount, key, PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(byte[] key, PermafrostMode mode, int saltBoxCount)
-            => Initialize(_defaultSeed, saltBoxCount, key, mode);
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(byte[] key, PermafrostMode mode, int keyScheduleCount)
+            => Initialize(_defaultSeed, keyScheduleCount, key, mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        public PermafrostCipher(string key, int saltBoxCount)
-            => Initialize(_defaultSeed, saltBoxCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
+        public PermafrostCipher(string key, int keyScheduleCount)
+            => Initialize(_defaultSeed, keyScheduleCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The string to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(string key, PermafrostMode mode, int saltBoxCount)
-            => Initialize(_defaultSeed, saltBoxCount, Encoding.UTF8.GetBytes(key), mode);
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(string key, PermafrostMode mode, int keyScheduleCount)
+            => Initialize(_defaultSeed, keyScheduleCount, Encoding.UTF8.GetBytes(key), mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(byte[] key, byte[] seed, int saltBoxCount)
-            => Initialize(seed, saltBoxCount, key, PermafrostMode.Continuous);
+        /// <param name="seed">Byte array used to generate key schedules.</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(byte[] key, byte[] seed, int keyScheduleCount)
+            => Initialize(seed, keyScheduleCount, key, PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(byte[] key, PermafrostMode mode, byte[] seed, int saltBoxCount)
-            => Initialize(seed, saltBoxCount, key, mode);
+        /// <param name="seed">Byte array used to generate key schedules.</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(byte[] key, PermafrostMode mode, byte[] seed, int keyScheduleCount)
+            => Initialize(seed, keyScheduleCount, key, mode);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key in Continuous mode.
         /// </summary>
         /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(string key, byte[] seed, int saltBoxCount)
-            => Initialize(seed, saltBoxCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
+        /// <param name="seed">Byte array used to generate key schedules.</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(string key, byte[] seed, int keyScheduleCount)
+            => Initialize(seed, keyScheduleCount, Encoding.UTF8.GetBytes(key), PermafrostMode.Continuous);
 
         /// <summary>
         /// Initializes a new instance of Permafrost using a key and a defined mode.
         /// </summary>
         /// <param name="key">The string to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        /// <param name="seed">byte array used to generate s-boxes</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
-        public PermafrostCipher(string key, PermafrostMode mode, byte[] seed, int saltBoxCount)
-            => Initialize(seed, saltBoxCount, Encoding.UTF8.GetBytes(key), mode);
+        /// <param name="seed">Byte array used to generate key schedules.</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
+        public PermafrostCipher(string key, PermafrostMode mode, byte[] seed, int keyScheduleCount)
+            => Initialize(seed, keyScheduleCount, Encoding.UTF8.GetBytes(key), mode);
 
         #endregion
 
         /// <summary>
-        /// Fills a single salt-box with PRNG values based on the given seed.
+        /// Fills a single key schedule with PRNG values based on the given seed.
         /// </summary>
-        private void FillSaltBox(byte[] seed, byte[] buffer)
+        private byte[] GenerateSingleKeySchedule(byte[] seed, int length)
         {
+            byte[] buffer = new byte[length];
+
             using var shaHMAC256 = new HMACSHA256(seed);
 
             int offset = 0;
 
-            while (offset < buffer.Length)
+            while (offset < length)
             {
-                var counterBytes = BitConverter.GetBytes(_saltHashCounter++);
+                var counterBytes = BitConverter.GetBytes(_KeyScheduleGenCounter++);
 
                 if (BitConverter.IsLittleEndian)
                     Array.Reverse(counterBytes); //For consistent output across platforms
@@ -246,114 +246,66 @@ namespace NTDLS.Permafrost
                 Array.Copy(hash, 0, buffer, offset, toCopy);
                 offset += toCopy;
             }
+
+            return buffer;
         }
 
-        private byte[,] GenerateSaltBoxes(byte[] seed, int saltBoxCount)
+        private void PopulateKeySchedule(byte[] seed, int keyScheduleCount)
         {
-            if (_saltHashCounter != 0)
+            if (_KeyScheduleGenCounter != 0)
             {
                 throw new InvalidOperationException("Permafrost has already been initialized.");
             }
-            if (SaltBoxCount != 0)
+            if (KeyScheduleCount != 0)
             {
                 throw new InvalidOperationException("Permafrost has already been initialized.");
             }
 
-            if (saltBoxCount < MinimumSaltBoxCount || saltBoxCount > MaximumSaltBoxCount)
+            if (keyScheduleCount < MinimumKeyScheduleCount || keyScheduleCount > MaximumKeyScheduleCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(saltBoxCount), $"The number of salt boxes must be between {MinimumSaltBoxCount} and {MaximumSaltBoxCount}.");
+                throw new ArgumentOutOfRangeException(nameof(keyScheduleCount), $"The number of key schedules must be between {MinimumKeyScheduleCount} and {MaximumKeyScheduleCount}.");
             }
 
-            SaltBoxCount = saltBoxCount;
+            KeyScheduleCount = keyScheduleCount;
 
-            byte[,] boxes = new byte[SaltBoxCount, SaltBoxValueCount];
+            _keySchedule = new byte[KeyScheduleCount, keyScheduleValueCount];
 
             for (int i = 0; i < seed.Length; i++)
             {
-                seed[i] = (byte)(seed[i] ^ (saltBoxCount % 255));
+                seed[i] = (byte)(seed[i] ^ (keyScheduleCount % 255));
             }
 
-            //Fill the Boxes array
-            for (int box = 0; box < SaltBoxCount; box++)
+            //Fill the key schedule with PRNG values based on the seed.
+            for (int schedule = 0; schedule < KeyScheduleCount; schedule++)
             {
-                byte[] saltBox = new byte[SaltBoxValueCount];
-                FillSaltBox(seed, saltBox);
+                byte[] keySchedule = GenerateSingleKeySchedule(seed, keyScheduleValueCount);
 
-                for (int value = 0; value < SaltBoxValueCount; value++)
+                for (int valueIndex = 0; valueIndex < keyScheduleValueCount; valueIndex++)
                 {
-                    boxes[box, value] = saltBox[value];
+                    _keySchedule[schedule, valueIndex] = keySchedule[valueIndex];
                 }
             }
-
-            return boxes;
         }
-
-        /// <summary>
-        /// Generates key salt values from a byte array.
-        /// </summary>
-        /// <param name="keyBuffer">The bytes to use as the encryption/decryption key.</param>
-        public byte[,] GenerateKeySalt(byte[] keyBuffer)
-        {
-            if (_boxes == null)
-            {
-                throw new InvalidOperationException("Permafrost has not been initialized.");
-            }
-
-            byte saltValue = 0;
-            int suppliedKeyIndex = 0;
-
-            var keySalt = new byte[SaltBoxCount, SaltBoxValueCount];
-
-            for (int box = 0; box < SaltBoxCount; box++)
-            {
-                for (int val = 0; val < SaltBoxValueCount; val++)
-                {
-                    if (suppliedKeyIndex == keyBuffer.Length)
-                    {
-                        suppliedKeyIndex = 0;
-                    }
-
-                    saltValue = (byte)((keyBuffer[suppliedKeyIndex] * ((val + 1) * (box + 1)))
-                        ^ _boxes[box, (keyBuffer[suppliedKeyIndex] ^ saltValue) % 255]);
-
-                    keySalt[box, val] = saltValue;
-
-                    suppliedKeyIndex++;
-                }
-            }
-
-            return keySalt;
-        }
-
-        /// <summary>
-        /// Generates key salt values from a UTF8 string.
-        /// </summary>
-        /// <param name="key">The UTF8 string to use as the encryption/decryption key.</param>
-        public byte[,] GenerateKeySalt(string key)
-            => GenerateKeySalt(Encoding.UTF8.GetBytes(key));
 
         /// <summary>
         /// Initializes all internal variables using the suppled key and defined mode.
         /// </summary>
-        /// <param name="seed">byte array used to generate s-boxes.</param>
-        /// <param name="saltBoxCount">The number of salt boxes to generate.</param>
+        /// <param name="seed">Byte array used to generate key schedules..</param>
+        /// <param name="keyScheduleCount">The number of key schedules to generate.</param>
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
-        public void Initialize(byte[] seed, int saltBoxCount, byte[] key, PermafrostMode mode)
+        public void Initialize(byte[] seed, int keyScheduleCount, byte[] key, PermafrostMode mode)
         {
-            _boxes = GenerateSaltBoxes(seed, saltBoxCount);
+            PopulateKeySchedule(seed, keyScheduleCount);
 
             _suppliedKeyIndex = (key.Length - 1);
             _suppliedKeySize = key.Length;
-            _saltBoxIndex = 0;
+            _keyScheduleIndex = 0;
 
             Mode = PermafrostMode.Continuous;
 
             _keyBuffer = key.Copy();
             _originalKeyBuffer = _keyBuffer.Copy();
-
-            _keySalt = GenerateKeySalt(_keyBuffer);
-            _OriginalKeySalt = _keySalt.Copy();
 
             Mode = mode;
 
@@ -366,7 +318,7 @@ namespace NTDLS.Permafrost
         /// <param name="key">The bytes to use as the encryption/decryption key.</param>
         /// <param name="mode">Whether to use AutoReset mode or Continuous mode. In AutoReset mode the order of encryption and decryption do not matter, but in Continuous mode, the encryption is expected to be continuous and each call to Cipher() depends on the call before it.</param>
         public void Initialize(byte[] key, PermafrostMode mode)
-            => Initialize(_defaultSeed, DefaultSaltBoxCount, key, mode);
+            => Initialize(_defaultSeed, DefaultKeyScheduleCount, key, mode);
 
         /// <summary>
         /// Resets the continuous stream so that the next call to Cipher() does not depend on the previous calls.
@@ -374,14 +326,13 @@ namespace NTDLS.Permafrost
         public void ResetStream()
         {
             _suppliedKeyIndex = (_suppliedKeySize - 1);
-            _saltBoxIndex = 0;
+            _keyScheduleIndex = 0;
 
-            if (_keyBuffer == null || _originalKeyBuffer == null || _OriginalKeySalt == null || _keySalt == null)
+            if (_keyBuffer == null || _originalKeyBuffer == null || _keySchedule == null)
             {
                 throw new InvalidOperationException("Permafrost has not been initialized.");
             }
 
-            Array.Copy(_OriginalKeySalt, _keySalt, _OriginalKeySalt.Length);
             Array.Copy(_originalKeyBuffer, _keyBuffer, _originalKeyBuffer.Length);
         }
 
@@ -395,13 +346,12 @@ namespace NTDLS.Permafrost
 
             _suppliedKeySize = 0;
             _suppliedKeyIndex = 0;
-            _saltBoxIndex = 0;
+            _keyScheduleIndex = 0;
             Mode = PermafrostMode.Continuous;
 
             _keyBuffer?.Sanitize();
             _originalKeyBuffer?.Sanitize();
-            _OriginalKeySalt?.Sanitize();
-            _keySalt?.Sanitize();
+            _keySchedule?.Sanitize();
         }
 
         /// <summary>
@@ -469,12 +419,12 @@ namespace NTDLS.Permafrost
                 throw new ObjectDisposedException(nameof(Permafrost));
             }
 
-            if (_keySalt == null || _keyBuffer == null)
+            if (_keySchedule == null || _keyBuffer == null)
             {
                 throw new InvalidOperationException("Permafrost has not been initialized.");
             }
 
-            if (SaltBoxCount == 0)
+            if (KeyScheduleCount == 0)
             {
                 throw new InvalidOperationException("Permafrost has not been initialized.");
             }
@@ -495,19 +445,18 @@ namespace NTDLS.Permafrost
                     _suppliedKeyIndex = (_suppliedKeySize - 1);
                 }
 
-                if (_saltBoxIndex == SaltBoxCount)
+                if (_keyScheduleIndex == KeyScheduleCount)
                 {
-                    _saltBoxIndex = 0;
+                    _keyScheduleIndex = 0;
                 }
 
-                var swapBuffer = _keySalt[_saltBoxIndex, _keyBuffer[_suppliedKeyIndex]];
-                _keySalt[_saltBoxIndex, (_keyBuffer)[_suppliedKeyIndex]] = _keyBuffer[_suppliedKeyIndex];
-                _keyBuffer[_suppliedKeyIndex] = (byte)swapBuffer;
+                target[index] = (byte)(source[index] ^ _keySchedule[_keyScheduleIndex, _keyBuffer[_suppliedKeyIndex]]);
 
-                target[index] = (byte)(source[index] ^ _keySalt[_saltBoxIndex, _keyBuffer[_suppliedKeyIndex]]);
+                //Mutate the key buffer.
+                _keyBuffer[_suppliedKeyIndex] ^= (byte)((_suppliedKeyIndex + 11 + _keyScheduleIndex) % 256);
 
                 _suppliedKeyIndex--;
-                _saltBoxIndex++;
+                _keyScheduleIndex++;
             }
         }
     }
