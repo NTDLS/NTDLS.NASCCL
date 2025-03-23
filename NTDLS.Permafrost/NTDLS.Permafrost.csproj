@@ -11,14 +11,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.Permafrost</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Rebranded from NASCCL to Permafrost.
-      Added streaming encryption and decryption.
-      Custom key derivation function.
-      Added support for custom key sizes.
-      Added support for custom salt sizes.
-      Added support for seeding salt generation.
+      Vastly improved entropy.
     </PackageReleaseNotes>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cryptography;secure;symmetric;stream;encryption;</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
