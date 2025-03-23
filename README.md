@@ -47,3 +47,6 @@ public static void DecryptAndDecompressFile(string inputPath, string outputPath)
     }
 }
 ```
+
+## Visulation of 1MB NULL values.
+![TestOutput txt](https://github.com/user-attachments/assets/92b152c0-0cb5-4ecd-bf24-a59c431351f6)
